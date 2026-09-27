@@ -1,0 +1,220 @@
+{
+  "app_name": "Rentify",
+  "personality": "1 iOS-Native Clean",
+  "personality_one_liner": "A sophisticated, trustworthy, and native-feeling operations dashboard anchored by earthy moss greens and warm sand tones—prioritizing clarity and financial transparency.",
+  "color": {
+    "light": {
+      "surface": "#FDFBF7",
+      "onSurface": "#1C1B1A",
+      "surfaceSecondary": "#FFFFFF",
+      "onSurfaceSecondary": "#1C1B1A",
+      "surfaceTertiary": "#F2EFE9",
+      "onSurfaceTertiary": "#4A4846",
+      "surfaceInverse": "#1C1B1A",
+      "onSurfaceInverse": "#FFFFFF",
+      "brand": "#2C5545",
+      "onBrand": "#FFFFFF",
+      "brandPrimary": "#2C5545",
+      "onBrandPrimary": "#FFFFFF",
+      "brandSecondary": "#3A705A",
+      "onBrandSecondary": "#FFFFFF",
+      "brandTertiary": "#E8F0EB",
+      "onBrandTertiary": "#2C5545",
+      "success": "#285C3F",
+      "onSuccess": "#FFFFFF",
+      "warning": "#B56D22",
+      "onWarning": "#FFFFFF",
+      "error": "#A13B3B",
+      "onError": "#FFFFFF",
+      "info": "#4A4846",
+      "onInfo": "#FFFFFF",
+      "border": "#E6E2DC",
+      "borderStrong": "#C2BCB3",
+      "divider": "#E6E2DC",
+      "muted": "#76736E"
+    },
+    "dark": {
+      "surface": "#161514",
+      "onSurface": "#FDFBF7",
+      "surfaceSecondary": "#21201E",
+      "onSurfaceSecondary": "#FDFBF7",
+      "surfaceTertiary": "#2C2A28",
+      "onSurfaceTertiary": "#A3A09A",
+      "surfaceInverse": "#FDFBF7",
+      "onSurfaceInverse": "#1C1B1A",
+      "brand": "#508C73",
+      "onBrand": "#161514",
+      "brandPrimary": "#508C73",
+      "onBrandPrimary": "#161514",
+      "brandSecondary": "#68A88E",
+      "onBrandSecondary": "#161514",
+      "brandTertiary": "#1B3026",
+      "onBrandTertiary": "#68A88E",
+      "success": "#367A55",
+      "onSuccess": "#FDFBF7",
+      "warning": "#C97E2A",
+      "onWarning": "#FDFBF7",
+      "error": "#C24B4B",
+      "onError": "#FDFBF7",
+      "info": "#A3A09A",
+      "onInfo": "#161514",
+      "border": "#363330",
+      "borderStrong": "#54504C",
+      "divider": "#363330",
+      "muted": "#A3A09A"
+    }
+  },
+  "typography": {
+    "displayFontFamily": "Plus Jakarta Sans",
+    "textFontFamily": "Plus Jakarta Sans",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Generous vertical breathing room. Cards and list items should feel comfortable to tap. Utilize native iOS spacing rhythms with 'lg' or 'xl' safe area padding.",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "1",
+  "navigation": "bottom_tabs",
+  "icon_set": "Phosphor",
+  "glassmorphism": {
+    "enabled": true,
+    "do's": [
+      "Use frosted glass on the bottom tab bar.",
+      "Use frosted glass overlay for sticky headers above scrollable ledger or property lists.",
+      "Use glassmorphism on floating action buttons (FAB) over a brandTertiary tint."
+    ],
+    "dont's": [
+      "Never apply glass to dense statistical tables or small chips.",
+      "Do not use glass for text input backgrounds."
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "haptics": {
+    "events": {
+      "tab_press": "selection",
+      "button_press": "light",
+      "ticket_status_change": "medium",
+      "payment_success": "success",
+      "error_state": "error"
+    }
+  },
+  "screens": [
+    {
+      "name": "Auth Flow (Owner & Tenant)",
+      "purpose": "A seamless entry point utilizing email + Aadhaar OTP verification to build immediate trust.",
+      "states": {
+        "loading": "Spinner on CTA",
+        "empty": "N/A",
+        "error": "Inline text below input or non-intrusive toast."
+      },
+      "layout": "Hero image covering the top 40% of the screen (building facade). The login form sits in a card overlapping the bottom edge of the image with a subtle gradient scrim. Large typography for 'Welcome to Rentify', single column input for email/Aadhaar, sticky Continue button above keyboard."
+    },
+    {
+      "name": "Owner Home Dashboard",
+      "purpose": "Provides the property owner with a high-level overview of revenue, unit occupancy, and urgent actionable items.",
+      "states": {
+        "loading": "Skeleton UI for stat cards.",
+        "empty": "Illustration of a clean room, prompt to 'Add your first property'.",
+        "error": "Error card with a prominent Retry button."
+      },
+      "layout": "Top section: Bold typography displaying 'Revenue this Month' on a primary brand card. Below it, a 2-col flex grid for 'Occupied Units', 'Vacant Units', and 'Pending Rent' using solid surfaceSecondary cards. Bottom section: A vertical list labeled 'Today's Actions' (Overdue rent, maintenance requests, expiring leases) with >56pt touch targets and chevron indicators."
+    },
+    {
+      "name": "Tenant Home Dashboard",
+      "purpose": "Reassures the tenant with clear next steps regarding rent, alongside important notifications.",
+      "states": {
+        "loading": "Skeleton UI.",
+        "empty": "Message stating 'No active lease found'.",
+        "error": "Error state with Retry."
+      },
+      "layout": "Prominent Hero card showing 'Next Rent Due' with amount and date, featuring a sticky primary CTA to 'Pay Rent via Razorpay' positioned inside the card. A list of recent notifications and a quick link to the Maintenance Ticket system below."
+    },
+    {
+      "name": "Tenant Ledger",
+      "purpose": "A chronological, highly scannable timeline of payments, charges, and refunds.",
+      "states": {
+        "loading": "List skeletons.",
+        "empty": "Icon illustration of keys with 'No transactions recorded yet'.",
+        "error": "Unable to fetch ledger data, tap to retry."
+      },
+      "layout": "Sticky header (frosted glass) with total balance. Scrollable list of transactions. Each row features a tinted icon container (brandTertiary), transaction title, date (muted), and the amount (formatted in bold). Use color coding sparingly—only for negative/pending balances."
+    },
+    {
+      "name": "Maintenance Ticketing",
+      "purpose": "Full ticketing system for reporting and tracking property issues.",
+      "states": {
+        "loading": "List skeletons.",
+        "empty": "Illustration of an empty room, 'No open maintenance requests'.",
+        "error": "Error message with Retry."
+      },
+      "layout": "Segmented control at the top (Open/In-Progress/Resolved). Scrollable list of cards. Each card displays an image thumbnail, title, date, and a pill-shaped status chip. Floating Action Button (FAB) (glass over brandTertiary) at the bottom right to 'Create Ticket'."
+    },
+    {
+      "name": "Security Deposit & Expenses View",
+      "purpose": "Track deposits, deductions, refunds, and operational expenses in a transparent tabular format.",
+      "states": {
+        "loading": "Skeleton rows.",
+        "empty": "Empty state illustration with text 'No expense records found'.",
+        "error": "Error state with Retry."
+      },
+      "layout": "Summary card at the top displaying Total Deposit / Total Expenses. Below, a chronological list of deductions and reasons, identical in structural rhythm to the ledger. Expense tracking allows a sticky primary CTA at the bottom to 'Log Expense'."
+    }
+  ],
+  "images": {
+    "auth_hero": {
+      "url": "https://images.unsplash.com/photo-1615406020658-6c4b805f1f30?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwxfHxtb2Rlcm4lMjBhcmNoaXRlY3R1cmUlMjBidWlsZGluZyUyMGZhY2FkZXxlbnwwfHx8fDE3OTA1MTk5OTZ8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Modern architecture building facade"
+    },
+    "auth_hero_dark": {
+      "url": "https://images.unsplash.com/photo-1614595737476-42487331b8a1?crop=entropy&cs=srgb&fm=jpg&ixid=M3w3NDk1ODB8MHwxfHNlYXJjaHwyfHxtb2Rlcm4lMjBhcmNoaXRlY3R1cmUlMjBidWlsZGluZyUyMGZhY2FkZXxlbnwwfHx8fDE3OTA1MTk5OTZ8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Gray concrete building"
+    },
+    "ledger_empty": {
+      "url": "https://images.unsplash.com/photo-1643804926339-e94f0a655185?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NTYxODd8MHwxfHNlYXJjaHwxfHxrZXlzJTIwb24lMjB3b29kZW4lMjB0YWJsZXxlbnwwfHx8fDE3OTA1MTk5OTZ8MA&ixlib=rb-4.1.0&q=85",
+      "alt": "Keys on wooden table"
+    },
+    "dashboard_empty": {
+      "url": "https://images.unsplash.com/photo-1630699376106-d550afb865bd?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1NTZ8MHwxfHNlYXJjaHwxfHxjbGVhbiUyMGVtcHR5JTIwcm9vbSUyMGludGVyaW9yfGVufDB8fHx8MTc5MDUxOTk5Nnww&ixlib=rb-4.1.0&q=85",
+      "alt": "Clean empty room interior"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the color palette provided (NO blues, purples, or magentas). Apply the moss green and warm sand tones strictly across all components.",
+    "Implement the 'iOS-Native Clean' spacing scale: utilize generous vertical breathing room. Do not cramp lists or stat cards.",
+    "Ensure 'brandPrimary' is used sparingly—only for Primary CTAs, active tab indicators, and critical highlights. The app canvas should primarily be 'surface' and 'surfaceSecondary'.",
+    "For text rendered on top of imagery (e.g., the auth hero image), you MUST implement a gradient-to-dark scrim pattern using expo-linear-gradient as outlined in the guidelines.",
+    "For the Owner Dashboard, structure the 'Today's Actions' section using a list rhythm (leading visual/icon + title + chevron) with a minimum 56pt tappable height per row.",
+    "For the Tenant Dashboard, ensure the 'Pay Rent' CTA is highly visible and sticky when appropriate.",
+    "Wire haptics to all primary button presses and tab changes as detailed in the haptics object.",
+    "Use Phosphor icons consistently at weights 400 or 500. Avoid mixing filled and outlined states except in the bottom tab navigation."
+  ]
+}
