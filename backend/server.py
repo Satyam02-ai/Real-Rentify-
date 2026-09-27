@@ -28,10 +28,14 @@ log = logging.getLogger("rentify")
 
 MONGO_URL = os.environ["MONGO_URL"]
 DB_NAME = os.environ.get("DB_NAME", "rentify_db")
-JWT_SECRET = os.environ.get("JWT_SECRET", "dev_secret")
+JWT_SECRET = os.environ["JWT_SECRET"]  # required; no insecure fallback
 JWT_ALG = "HS256"
 JWT_MINUTES = int(os.environ.get("JWT_EXPIRE_MINUTES", "10080"))
 OTP_MINUTES = int(os.environ.get("OTP_EXPIRE_MINUTES", "10"))
+# Never log OTPs in production. Keep enabled only for preview/testing.
+DEBUG_OTP = os.environ.get("DEBUG_OTP", "false").lower() == "true"
+ENABLE_DEV_ROUTES = os.environ.get("ENABLE_DEV_ROUTES", "false").lower() == "true"
+OTP_MAX_RESENDS = 5
 
 RAZORPAY_KEY_ID = os.environ.get("RAZORPAY_KEY_ID", "")
 RAZORPAY_KEY_SECRET = os.environ.get("RAZORPAY_KEY_SECRET", "")
@@ -357,7 +361,8 @@ async def signup(body: SignupIn):
     })
     await send_email(email, "Your Rentify verification code",
                      f"Hi {body.name}, your Rentify verification code is {code}. It expires in {OTP_MINUTES} minutes.")
-    log.info("signup OTP for %s = %s", email, code)  # dev aid
+    if DEBUG_OTP:
+        log.info("signup OTP for %s = %s", email, code)  # preview/testing only
     return {"message": "Verification code sent", "email": email}
 
 
@@ -385,14 +390,24 @@ async def resend_otp(body: ResendIn):
     user = await db.users.find_one({"email": body.email.lower()})
     if not user or user.get("email_verified"):
         raise HTTPException(400, "Nothing to verify")
+    if user.get("otp_resends", 0) >= OTP_MAX_RESENDS:
+        raise HTTPException(429, "Too many code requests. Please try again later.")
+    last = user.get("otp_last_sent")
+    if last and (now() - datetime.fromisoformat(last)).total_seconds() < 30:
+        raise HTTPException(429, "Please wait a moment before requesting another code.")
     code = f"{secrets.randbelow(1_000_000):06d}"
-    await db.users.update_one({"id": user["id"]}, {"$set": {
-        "otp_hash": otp_digest(code),
-        "otp_expires": iso(now() + timedelta(minutes=OTP_MINUTES)), "otp_attempts": 0,
-    }})
+    await db.users.update_one({"id": user["id"]}, {
+        "$set": {
+            "otp_hash": otp_digest(code),
+            "otp_expires": iso(now() + timedelta(minutes=OTP_MINUTES)),
+            "otp_last_sent": iso(now()),
+        },
+        "$inc": {"otp_resends": 1},
+    })
     await send_email(user["email"], "Your Rentify verification code",
                      f"Your new Rentify code is {code}.")
-    log.info("resend OTP for %s = %s", user["email"], code)
+    if DEBUG_OTP:
+        log.info("resend OTP for %s = %s", user["email"], code)  # preview/testing only
     return {"message": "Verification code sent"}
 
 
@@ -479,6 +494,15 @@ async def get_property(pid: str, user=Depends(current_user)):
     p = await db.properties.find_one({"id": pid, "deleted_at": None}, {"_id": 0})
     if not p:
         raise HTTPException(404, "Property not found")
+    # Object-level authorization: owner must own it, tenant must have an active lease on it
+    if user["role"] == "owner":
+        if p["owner_id"] != user["id"]:
+            raise HTTPException(404, "Property not found")
+    else:
+        lease = await db.leases.find_one(
+            {"property_id": pid, "tenant_id": user["id"], "status": "active", "deleted_at": None})
+        if not lease:
+            raise HTTPException(404, "Property not found")
     p["units"] = await db.units.find({"property_id": pid, "deleted_at": None}, {"_id": 0}).to_list(500)
     return p
 
@@ -783,10 +807,12 @@ async def mark_paid_manual(iid: str, user=Depends(require_role("owner"))):
 async def razorpay_webhook(request: Request):
     raw = await request.body()
     sig = request.headers.get("x-razorpay-signature", "")
-    if RAZORPAY_WEBHOOK_SECRET and "change_this" not in RAZORPAY_WEBHOOK_SECRET:
-        expected = hmac.new(RAZORPAY_WEBHOOK_SECRET.encode(), raw, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(expected, sig):
-            raise HTTPException(400, "Invalid webhook signature")
+    # Always require a configured secret and a valid signature. Never trust unsigned events.
+    if not RAZORPAY_WEBHOOK_SECRET or "change_this" in RAZORPAY_WEBHOOK_SECRET:
+        raise HTTPException(503, "Webhook secret not configured")
+    expected = hmac.new(RAZORPAY_WEBHOOK_SECRET.encode(), raw, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, sig):
+        raise HTTPException(400, "Invalid webhook signature")
     event = json.loads(raw or b"{}")
     name = event.get("event", "")
     if name in ("payment.captured", "order.paid"):
@@ -852,6 +878,15 @@ async def create_ticket(body: TicketIn, user=Depends(current_user)):
     prop = await db.properties.find_one({"id": body.property_id, "deleted_at": None}, {"_id": 0})
     if not prop:
         raise HTTPException(404, "Property not found")
+    # Authorization: tenant may only raise tickets on a property they actively lease;
+    # owner may only raise tickets on properties they own.
+    if user["role"] == "tenant":
+        lease = await db.leases.find_one(
+            {"property_id": body.property_id, "tenant_id": user["id"], "status": "active", "deleted_at": None})
+        if not lease:
+            raise HTTPException(403, "You can only raise requests for your leased property")
+    elif prop["owner_id"] != user["id"]:
+        raise HTTPException(403, "Not allowed")
     owner_id = prop["owner_id"]
     ticket = {
         "id": new_id(), "ticket_no": f"TKT-{secrets.randbelow(100000):05d}",
@@ -1001,5 +1036,7 @@ async def daily_job():
 
 @app.post("/api/dev/run-daily")
 async def run_daily(user=Depends(current_user)):
+    if not ENABLE_DEV_ROUTES:
+        raise HTTPException(404, "Not found")
     await daily_job()
     return {"ok": True}
